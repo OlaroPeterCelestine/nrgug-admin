@@ -20,6 +20,7 @@ export interface NewsRequest {
 
 export interface Show {
   id: number;
+  show_name: string;
   image?: string;
   time: string;
   presenters: string;
@@ -29,6 +30,7 @@ export interface Show {
 }
 
 export interface ShowRequest {
+  show_name: string;
   image?: string;
   time: string;
   presenters: string;

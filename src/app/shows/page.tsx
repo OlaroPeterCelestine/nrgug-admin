@@ -24,6 +24,7 @@ export default function ShowsPage() {
   const [editingShow, setEditingShow] = useState<Show | null>(null);
   const [deletingShow, setDeletingShow] = useState<Show | null>(null);
   const [formData, setFormData] = useState<ShowRequest>({
+    show_name: '',
     presenters: '',
     time: '',
     day_of_week: '',
@@ -62,7 +63,7 @@ export default function ShowsPage() {
       await fetchShows();
       setIsDialogOpen(false);
       setEditingShow(null);
-      setFormData({ presenters: '', time: '', day_of_week: '', image: '' });
+      setFormData({ show_name: '', presenters: '', time: '', day_of_week: '', image: '' });
     } catch (error) {
       console.error('Failed to save show:', error);
     }
@@ -71,6 +72,7 @@ export default function ShowsPage() {
   const handleEdit = (item: Show) => {
     setEditingShow(item);
     setFormData({
+      show_name: item.show_name,
       presenters: item.presenters,
       time: item.time,
       day_of_week: item.day_of_week,
@@ -90,6 +92,7 @@ export default function ShowsPage() {
   };
 
   const filteredShows = shows?.filter(item =>
+    item.show_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.presenters.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
@@ -118,7 +121,7 @@ export default function ShowsPage() {
             <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingShow(null);
-                setFormData({ presenters: '', time: '', day_of_week: '', image: '' });
+                setFormData({ show_name: '', presenters: '', time: '', day_of_week: '', image: '' });
               }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Schedule Show
@@ -134,6 +137,16 @@ export default function ShowsPage() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="show_name">Show Name</Label>
+                  <Input
+                    id="show_name"
+                    value={formData.show_name}
+                    onChange={(e) => setFormData({ ...formData, show_name: e.target.value })}
+                    placeholder="Enter show name"
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="presenters">Presenters</Label>
                   <Input
@@ -217,6 +230,7 @@ export default function ShowsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Show</TableHead>
+                  <TableHead>Show Name</TableHead>
                   <TableHead>Presenters</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Day</TableHead>
@@ -239,9 +253,14 @@ export default function ShowsPage() {
                         <div>
                           <p className="font-medium">Show #{item.id}</p>
                           <p className="text-sm text-gray-500">
-                            {item.presenters}
+                            {item.show_name}
                           </p>
                         </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm font-medium">
+                        {item.show_name}
                       </div>
                     </TableCell>
                     <TableCell>
