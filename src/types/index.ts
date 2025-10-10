@@ -21,17 +21,18 @@ export interface NewsRequest {
 export interface Show {
   id: number;
   image?: string;
-  hosts: string;
-  time_from: string;
-  time_to: string;
+  time: string;
+  presenters: string;
+  day_of_week: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ShowRequest {
   image?: string;
-  hosts: string;
-  time_from: string;
-  time_to: string;
+  time: string;
+  presenters: string;
+  day_of_week: string;
 }
 
 export interface Client {

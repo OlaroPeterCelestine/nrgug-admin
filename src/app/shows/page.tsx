@@ -24,9 +24,9 @@ export default function ShowsPage() {
   const [editingShow, setEditingShow] = useState<Show | null>(null);
   const [deletingShow, setDeletingShow] = useState<Show | null>(null);
   const [formData, setFormData] = useState<ShowRequest>({
-    hosts: '',
-    time_from: '',
-    time_to: '',
+    presenters: '',
+    time: '',
+    day_of_week: '',
     image: '',
   });
 
@@ -50,11 +50,8 @@ export default function ShowsPage() {
     e.preventDefault();
     try {
       // Convert time-only values to full datetime (using today's date)
-      const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
       const submitData = {
         ...formData,
-        time_from: formData.time_from ? `${today}T${formData.time_from}:00Z` : '',
-        time_to: formData.time_to ? `${today}T${formData.time_to}:00Z` : '',
       };
 
       if (editingShow) {
@@ -65,7 +62,7 @@ export default function ShowsPage() {
       await fetchShows();
       setIsDialogOpen(false);
       setEditingShow(null);
-      setFormData({ hosts: '', time_from: '', time_to: '', image: '' });
+      setFormData({ presenters: '', time: '', day_of_week: '', image: '' });
     } catch (error) {
       console.error('Failed to save show:', error);
     }
@@ -74,9 +71,9 @@ export default function ShowsPage() {
   const handleEdit = (item: Show) => {
     setEditingShow(item);
     setFormData({
-      hosts: item.hosts,
-      time_from: new Date(item.time_from).toTimeString().slice(0, 5), // Extract HH:MM from time
-      time_to: new Date(item.time_to).toTimeString().slice(0, 5), // Extract HH:MM from time
+      presenters: item.presenters,
+      time: item.time,
+      day_of_week: item.day_of_week,
       image: item.image || '',
     });
     setIsDialogOpen(true);
@@ -93,21 +90,10 @@ export default function ShowsPage() {
   };
 
   const filteredShows = shows?.filter(item =>
-    item.hosts.toLowerCase().includes(searchTerm.toLowerCase())
+    item.presenters.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  };
-
-  const isUpcoming = (dateString: string) => {
-    return new Date(dateString) > new Date();
-  };
+  // Time is now provided directly from API
 
   if (loading) {
     return (
@@ -132,7 +118,7 @@ export default function ShowsPage() {
             <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingShow(null);
-                setFormData({ hosts: '', time_from: '', time_to: '', image: '' });
+                setFormData({ presenters: '', time: '', day_of_week: '', image: '' });
               }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Schedule Show
@@ -149,36 +135,41 @@ export default function ShowsPage() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="hosts">Hosts</Label>
+                  <Label htmlFor="presenters">Presenters</Label>
                   <Input
-                    id="hosts"
-                    value={formData.hosts}
-                    onChange={(e) => setFormData({ ...formData, hosts: e.target.value })}
-                    placeholder="Enter host names"
+                    id="presenters"
+                    value={formData.presenters}
+                    onChange={(e) => setFormData({ ...formData, presenters: e.target.value })}
+                    placeholder="Enter presenter names"
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="time_from">Start Time</Label>
-                    <Input
-                      id="time_from"
-                      type="time"
-                      value={formData.time_from}
-                      onChange={(e) => setFormData({ ...formData, time_from: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time_to">End Time</Label>
-                    <Input
-                      id="time_to"
-                      type="time"
-                      value={formData.time_to}
-                      onChange={(e) => setFormData({ ...formData, time_to: e.target.value })}
-                      required
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">Time Range</Label>
+                  <Input
+                    id="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    placeholder="e.g., 14:00 - 16:00"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="day_of_week">Day of Week</Label>
+                  <Select value={formData.day_of_week} onValueChange={(value) => setFormData({ ...formData, day_of_week: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select day" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Monday">Monday</SelectItem>
+                      <SelectItem value="Tuesday">Tuesday</SelectItem>
+                      <SelectItem value="Wednesday">Wednesday</SelectItem>
+                      <SelectItem value="Thursday">Thursday</SelectItem>
+                      <SelectItem value="Friday">Friday</SelectItem>
+                      <SelectItem value="Saturday">Saturday</SelectItem>
+                      <SelectItem value="Sunday">Sunday</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <ImageUpload
                   value={formData.image}
@@ -226,8 +217,9 @@ export default function ShowsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Show</TableHead>
-                  <TableHead>Hosts</TableHead>
+                  <TableHead>Presenters</TableHead>
                   <TableHead>Time</TableHead>
+                  <TableHead>Day</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -240,14 +232,14 @@ export default function ShowsPage() {
                         {item.image && (
                           <img
                             src={item.image}
-                            alt={item.hosts}
+                            alt={item.presenters}
                             className="h-10 w-10 rounded object-cover"
                           />
                         )}
                         <div>
                           <p className="font-medium">Show #{item.id}</p>
                           <p className="text-sm text-gray-500">
-                            {item.hosts}
+                            {item.presenters}
                           </p>
                         </div>
                       </div>
@@ -255,21 +247,24 @@ export default function ShowsPage() {
                     <TableCell>
                       <div className="flex items-center text-sm">
                         <Users className="h-4 w-4 mr-1" />
-                        {item.hosts}
+                        {item.presenters}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center text-sm">
                         <Clock className="h-4 w-4 mr-1" />
-                        {formatTime(item.time_from)} - {formatTime(item.time_to)}
+                        {item.time}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={isUpcoming(item.time_from) ? "default" : "secondary"}
-                        className={isUpcoming(item.time_from) ? "bg-green-100 text-green-800" : ""}
-                      >
-                        {isUpcoming(item.time_from) ? 'Upcoming' : 'Past'}
+                      <div className="flex items-center text-sm">
+                        <Calendar className="h-4 w-4 mr-1" />
+                        {item.day_of_week}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="default" className="bg-blue-100 text-blue-800">
+                        Active
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -296,7 +291,7 @@ export default function ShowsPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Show</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete the show &quot;{deletingShow?.hosts}&quot;? This action cannot be undone.
+                                Are you sure you want to delete the show &quot;{deletingShow?.presenters}&quot;? This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
