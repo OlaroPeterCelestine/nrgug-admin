@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, Lock, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Eye, EyeOff, Lock, User, AlertCircle, X } from 'lucide-react';
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -18,13 +19,27 @@ export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       return;
     }
-    await onLogin(email.trim(), password);
+    
+    try {
+      await onLogin(email.trim(), password);
+    } catch (error) {
+      // Show popup for login errors
+      setErrorMessage(error instanceof Error ? error.message : 'Login failed. Please try again.');
+      setShowErrorPopup(true);
+    }
+  };
+
+  const closeErrorPopup = () => {
+    setShowErrorPopup(false);
+    setErrorMessage('');
   };
 
   return (
@@ -133,6 +148,38 @@ export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
           </p>
         </div>
       </div>
+
+      {/* Error Popup Dialog */}
+      <Dialog open={showErrorPopup} onOpenChange={setShowErrorPopup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+              <DialogTitle className="text-red-600">Login Failed</DialogTitle>
+            </div>
+            <DialogDescription className="text-gray-600">
+              {errorMessage || 'Invalid credentials. Please check your email and password.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={closeErrorPopup}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Close
+            </Button>
+            <Button
+              onClick={closeErrorPopup}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Try Again
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
