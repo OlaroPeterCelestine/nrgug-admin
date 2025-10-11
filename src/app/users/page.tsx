@@ -276,7 +276,8 @@ export default function UsersPage() {
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          )}
         </div>
 
         {/* Statistics Cards */}
