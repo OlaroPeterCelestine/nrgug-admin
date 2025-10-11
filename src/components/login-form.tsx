@@ -129,7 +129,7 @@ export function LoginForm({ onLogin, loading, error }: LoginFormProps) {
 
         <div className="text-center">
           <p className="text-xs text-gray-500">
-            © 2024 NRGUG Broadcasting Services. All rights reserved.
+            © 2025 NRGUG Broadcasting Services. All rights reserved.
           </p>
         </div>
       </div>
