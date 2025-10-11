@@ -135,30 +135,20 @@ export const mailLogApi = {
   getStats: (): Promise<{ data: MailStats }> => api.get('/api/mail-logs/stats'),
 };
 
-// Upload API
+// Upload API (R2 only)
 export const uploadApi = {
-  uploadImage: (file: File, type: 'news' | 'shows' | 'clients' | 'mail'): Promise<{ data: { url: string } }> => {
+  uploadToR2: (file: File, type: 'news' | 'shows' | 'clients' | 'mail'): Promise<{ data: { url: string; filename: string; key: string } }> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', type);
-    return api.post('/api/upload', formData, {
+    return api.post('/api/upload/r2', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   },
-  uploadToCloudinary: (file: File, type: 'news' | 'shows' | 'clients' | 'mail'): Promise<{ data: { url: string; publicID: string; assetID: string } }> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-    return api.post('/api/upload/cloudinary', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-  },
-  deleteFromCloudinary: (publicID: string): Promise<{ data: { result: string; publicID: string } }> => {
-    return api.delete(`/api/upload/cloudinary/delete?public_id=${publicID}`);
+  deleteFromR2: (key: string): Promise<{ data: { result: string; key: string } }> => {
+    return api.delete(`/api/upload/r2/delete?key=${key}`);
   },
 };
 

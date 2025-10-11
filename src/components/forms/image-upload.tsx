@@ -42,7 +42,7 @@ export function ImageUpload({
       return;
     }
 
-    // Validate file size (10MB limit for Cloudinary)
+    // Validate file size (10MB limit for R2)
     if (file.size > 10 * 1024 * 1024) {
       alert('File size must be less than 10MB');
       return;
@@ -50,24 +50,17 @@ export function ImageUpload({
 
     setIsUploading(true);
     try {
-      // Try Cloudinary first, fallback to local upload
-      let response;
-      try {
-        response = await uploadApi.uploadToCloudinary(file, uploadType);
-        console.log('✅ Uploaded to Cloudinary:', response.data);
-      } catch (cloudinaryError) {
-        console.warn('Cloudinary upload failed, falling back to local upload:', cloudinaryError);
-        response = await uploadApi.uploadImage(file, uploadType);
-        console.log('✅ Uploaded locally:', response.data);
-      }
+      // Upload to R2 storage
+      const response = await uploadApi.uploadToR2(file, uploadType);
+      console.log('✅ Uploaded to R2:', response.data);
       
       const imageUrl = response.data.url;
       onChange(imageUrl);
       setPreviewUrl(imageUrl);
       setUrlValue(imageUrl);
     } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
+      console.error('R2 upload failed:', error);
+      alert('Upload failed. Please check your connection and try again.');
     } finally {
       setIsUploading(false);
     }
