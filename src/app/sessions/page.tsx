@@ -235,7 +235,7 @@ export default function SessionsPage() {
   const uniqueUsers = new Set(sessions.map(s => s.userId)).size;
 
   // Check if current user is admin
-  const isAdmin = currentUser?.role === 'Admin';
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
 
   // Show loading while auth is being checked
   if (authLoading) {

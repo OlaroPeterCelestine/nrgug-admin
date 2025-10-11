@@ -120,14 +120,14 @@ export default function UsersPage() {
 
   // Calculate statistics
   const totalUsers = users.length;
-  const adminUsers = users.filter(user => user.role === 'Admin').length;
+  const adminUsers = users.filter(user => user.role?.toLowerCase() === 'admin').length;
   const techUsers = users.filter(user => user.role === 'Tech').length;
   const digitalUsers = users.filter(user => user.role === 'Digital').length;
   const programmingUsers = users.filter(user => user.role === 'Programming').length;
   const commercialUsers = users.filter(user => user.role === 'Commercial').length;
 
   // Check if current user is admin
-  const isAdmin = currentUser?.role === 'Admin';
+  const isAdmin = currentUser?.role?.toLowerCase() === 'admin';
   const canManageUsers = isAdmin;
 
   // Show loading while auth is being checked
