@@ -143,11 +143,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('[AUTH] Attempting login for:', email);
+      
       // Use the real API for authentication
       const response = await authApi.login(email, password);
       
+      console.log('[AUTH] Login response:', response);
+      
       // The API returns the user object directly
       const userData = response.data;
+      
+      console.log('[AUTH] User data:', userData);
       
       // Create a simple token since the API doesn't return JWT
       const simpleToken = typeof window !== 'undefined' ? btoa(JSON.stringify({ email: userData.email, id: userData.id })) : 'temp-token';
@@ -165,8 +171,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Start session management
       startSessionTimer();
       startActivityChecker();
+      
+      console.log('[AUTH] Login successful');
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[AUTH] Login error:', error);
       throw error;
     }
   };

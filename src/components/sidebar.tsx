@@ -19,6 +19,7 @@ import {
   MailCheck,
   Video,
   Star,
+  Activity,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Clock } from 'lucide-react';
@@ -53,6 +54,12 @@ const navigation = [
     href: '/users',
     icon: Users,
     description: 'System users',
+  },
+  {
+    name: 'Sessions',
+    href: '/sessions',
+    icon: Activity,
+    description: 'User sessions',
   },
   {
     name: 'Videos',

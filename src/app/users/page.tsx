@@ -11,16 +11,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Edit, Trash2, Users, Shield, Mail, Phone } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Users, Shield, Mail, Phone, Eye, Calendar, UserCheck } from 'lucide-react';
 import { User, UserRequest } from '@/types';
 import { usersApi } from '@/lib/api';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function UsersPage() {
+  const { user: currentUser, loading: authLoading } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<UserRequest>({
     name: '',
@@ -68,6 +72,11 @@ export default function UsersPage() {
     }
   };
 
+  const handleView = (user: User) => {
+    setViewingUser(user);
+    setIsViewDialogOpen(true);
+  };
+
   const handleEdit = (item: User) => {
     setEditingUser(item);
     setFormData({
@@ -109,6 +118,49 @@ export default function UsersPage() {
     return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  // Calculate statistics
+  const totalUsers = users.length;
+  const adminUsers = users.filter(user => user.role === 'Admin').length;
+  const techUsers = users.filter(user => user.role === 'Tech').length;
+  const digitalUsers = users.filter(user => user.role === 'Digital').length;
+  const programmingUsers = users.filter(user => user.role === 'Programming').length;
+  const commercialUsers = users.filter(user => user.role === 'Commercial').length;
+
+  // Check if current user is admin
+  const isAdmin = currentUser?.role === 'Admin';
+  const canManageUsers = isAdmin;
+
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // If not admin, show access denied
+  if (!isAdmin) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Shield className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600 mb-4">
+              You don't have permission to access user management.
+            </p>
+            <p className="text-sm text-gray-500">
+              Only administrators can view and manage users.
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (loading) {
     return (
       <Layout>
@@ -128,16 +180,17 @@ export default function UsersPage() {
             <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-600">Manage system users and permissions</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {
-                setEditingUser(null);
-                setFormData({ name: '', phone: '', role: '', email: '', password: '' });
-              }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add User
-              </Button>
-            </DialogTrigger>
+          {canManageUsers && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  setEditingUser(null);
+                  setFormData({ name: '', phone: '', role: '', email: '', password: '' });
+                }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add User
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>
@@ -226,6 +279,76 @@ export default function UsersPage() {
           </Dialog>
         </div>
 
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-2xl font-bold">{totalUsers}</p>
+                  <p className="text-sm text-gray-600">Total Users</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Shield className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="text-2xl font-bold">{adminUsers}</p>
+                  <p className="text-sm text-gray-600">Admins</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <UserCheck className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-2xl font-bold">{techUsers}</p>
+                  <p className="text-sm text-gray-600">Tech</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="text-2xl font-bold">{digitalUsers}</p>
+                  <p className="text-sm text-gray-600">Digital</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Edit className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="text-2xl font-bold">{programmingUsers}</p>
+                  <p className="text-sm text-gray-600">Programming</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-indigo-600" />
+                <div>
+                  <p className="text-2xl font-bold">{commercialUsers}</p>
+                  <p className="text-sm text-gray-600">Commercial</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Search */}
         <Card>
           <CardContent className="p-6">
@@ -263,7 +386,7 @@ export default function UsersPage() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 rounded-full bg-bg-red-1000 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-full bg-red-600 flex items-center justify-center">
                           <span className="text-sm font-medium text-white">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
@@ -304,21 +427,32 @@ export default function UsersPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEdit(user)}
+                          onClick={() => handleView(user)}
+                          title="View Details"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        {canManageUsers && (
+                          <>
                             <Button
-                              variant="destructive"
+                              variant="ghost"
                               size="sm"
-                              onClick={() => setDeletingUser(user)}
-                              className="bg-red-500 hover:bg-red-600 text-white"
+                              onClick={() => handleEdit(user)}
+                              title="Edit User"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => setDeletingUser(user)}
+                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete User</AlertDialogTitle>
@@ -337,6 +471,8 @@ export default function UsersPage() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -345,6 +481,112 @@ export default function UsersPage() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* View User Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+              <DialogDescription>
+                View detailed information about this user
+              </DialogDescription>
+            </DialogHeader>
+            {viewingUser && (
+              <div className="space-y-6">
+                {/* User Avatar and Basic Info */}
+                <div className="flex items-center space-x-4">
+                  <div className="h-16 w-16 rounded-full bg-red-600 flex items-center justify-center">
+                    <span className="text-2xl font-medium text-white">
+                      {viewingUser.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">{viewingUser.name}</h3>
+                    <p className="text-gray-600">User ID: {viewingUser.id}</p>
+                    <Badge className={getRoleColor(viewingUser.role)}>
+                      <Shield className="h-3 w-3 mr-1" />
+                      {viewingUser.role}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold">Contact Information</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Mail className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-600">Email</p>
+                          <p className="font-medium">{viewingUser.email}</p>
+                        </div>
+                      </div>
+                      {viewingUser.phone && (
+                        <div className="flex items-center space-x-3">
+                          <Phone className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <p className="text-sm text-gray-600">Phone</p>
+                            <p className="font-medium">{viewingUser.phone}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold">Account Information</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-600">Created</p>
+                          <p className="font-medium">
+                            {new Date(viewingUser.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <Shield className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm text-gray-600">Role</p>
+                          <p className="font-medium">{viewingUser.role}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsViewDialogOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  {canManageUsers && (
+                    <Button
+                      onClick={() => {
+                        setIsViewDialogOpen(false);
+                        handleEdit(viewingUser);
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit User
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

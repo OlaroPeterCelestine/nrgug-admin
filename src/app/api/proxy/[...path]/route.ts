@@ -30,6 +30,20 @@ export async function DELETE(
   return handleRequest(request, params, 'DELETE');
 }
 
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 async function handleRequest(
   request: NextRequest,
   params: Promise<{ path: string[] }>,
@@ -42,6 +56,8 @@ async function handleRequest(
     
     const targetUrl = `${API_BASE_URL}/api/${path.join('/')}${queryString}`;
     
+    console.log(`[PROXY] ${method} ${targetUrl}`);
+    
     const headers: Record<string, string> = {};
     request.headers.forEach((value, key) => {
       // Forward important headers but exclude host and other Next.js specific headers
@@ -51,6 +67,10 @@ async function handleRequest(
     });
 
     const body = method !== 'GET' ? await request.text() : undefined;
+    
+    if (body) {
+      console.log(`[PROXY] Request body:`, body);
+    }
 
     const response = await fetch(targetUrl, {
       method,
@@ -59,6 +79,9 @@ async function handleRequest(
     });
 
     const data = await response.text();
+    
+    console.log(`[PROXY] Response status: ${response.status}`);
+    console.log(`[PROXY] Response data:`, data);
     
     return new NextResponse(data, {
       status: response.status,
@@ -78,3 +101,4 @@ async function handleRequest(
     );
   }
 }
+

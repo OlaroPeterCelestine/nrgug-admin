@@ -62,3 +62,4 @@ curl https://your-admin-domain.vercel.app/api/proxy/news
 # This will be blocked (direct API access)
 curl https://nrgug-api-production.up.railway.app/api/news
 ```
+

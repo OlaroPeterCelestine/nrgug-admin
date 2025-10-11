@@ -134,3 +134,4 @@ export const setupSessionAutoExtend = () => {
     clearInterval(interval);
   };
 };
+

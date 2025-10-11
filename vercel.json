@@ -21,6 +21,11 @@
   ],
   "env": {
     "BACKEND_URL": "https://nrgug-api-production.up.railway.app"
+  },
+  "functions": {
+    "src/app/api/proxy/[...path]/route.ts": {
+      "maxDuration": 30
+    }
   }
 }
 

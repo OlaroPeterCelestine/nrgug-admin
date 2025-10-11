@@ -34,3 +34,4 @@ export async function serverFetch(endpoint: string, options: RequestInit = {}) {
 
   return response;
 }
+
