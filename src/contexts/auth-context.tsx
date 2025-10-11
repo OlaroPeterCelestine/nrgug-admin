@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   loading: boolean;
   lastActivity: number;
   updateActivity: () => void;
@@ -179,18 +179,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      // Try to call the logout API, but don't fail if it doesn't work
+      try {
+        await authApi.logout();
+      } catch (error) {
+        console.log('[AUTH] Logout API call failed, proceeding with local logout:', error);
+      }
+    } catch (error) {
+      console.log('[AUTH] Logout API error, proceeding with local logout:', error);
+    }
+    
     // Stop session timers
     stopSessionTimer();
     
+    // Clear local storage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       localStorage.removeItem('last_activity');
     }
+    
+    // Reset state
     setToken(null);
     setUser(null);
     setLastActivity(Date.now());
+    
+    // Redirect to login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   return (

@@ -53,8 +53,8 @@ export function SessionWarning() {
     setShowWarning(false);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setShowWarning(false);
   };
 
