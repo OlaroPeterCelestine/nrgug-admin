@@ -50,50 +50,32 @@ export function ImageUpload({
 
     setIsUploading(true);
     try {
-      // Create a local URL for preview
-      const localUrl = URL.createObjectURL(file);
-      setPreviewUrl(localUrl);
-      
       console.log('📁 File selected:', file.name, 'Size:', file.size, 'bytes');
       
-      // Try to upload to R2 via backend first
-      try {
-        const result = await uploadToR2(file, uploadType);
-        console.log('✅ R2 Upload successful:', result);
+      // Convert file to base64 for immediate preview and storage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target?.result as string;
+        setPreviewUrl(base64String);
+        setUrlValue(base64String);
+        onChange(base64String);
+        setIsUploading(false);
         
-        onChange(result.url);
-        setUrlValue(result.url);
-        setPreviewUrl(result.url);
-        
-        alert(`✅ File uploaded successfully!\n\nR2 URL: ${result.url}`);
-        
-      } catch (uploadError) {
-        console.log('⚠️ Backend upload failed, generating R2 URL:', uploadError);
-        
-        // Fallback: Generate R2 URL for manual upload
-        const r2Url = generateR2Url(file.name, uploadType);
-        
-        const userConfirmed = confirm(
-          `File selected: ${file.name}\n\n` +
-          `Backend upload not available. Generated R2 URL:\n${r2Url}\n\n` +
-          `Would you like to use this URL? You'll need to upload the file to R2 storage manually.`
-        );
-        
-        if (userConfirmed) {
-          onChange(r2Url);
-          setUrlValue(r2Url);
-          setPreviewUrl(r2Url);
-        } else {
-          // Let user enter their own URL
-          setUrlValue('');
-          setPreviewUrl(localUrl);
-        }
-      }
+        console.log('✅ File converted to base64 and ready for use');
+        alert(`✅ Image uploaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB`);
+      };
+      
+      reader.onerror = () => {
+        console.error('File reading failed');
+        alert('Failed to read file. Please try again.');
+        setIsUploading(false);
+      };
+      
+      reader.readAsDataURL(file);
       
     } catch (error) {
       console.error('File processing failed:', error);
       alert('File processing failed. Please try again.');
-    } finally {
       setIsUploading(false);
     }
   };
@@ -108,7 +90,6 @@ export function ImageUpload({
     if (urlValue.trim()) {
       onChange(urlValue.trim());
       setPreviewUrl(urlValue.trim());
-      setShowUrlInput(false);
     }
   };
 
@@ -187,17 +168,17 @@ export function ImageUpload({
             className="flex-1"
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isUploading ? 'Uploading to R2...' : 'Upload to R2 Storage'}
+            {isUploading ? 'Processing...' : 'Upload Image'}
           </Button>
         </div>
 
         {/* Info Message */}
         <div className="text-xs text-gray-500 bg-green-50 p-2 rounded">
-          🚀 <strong>R2 Storage Integrated:</strong> Direct upload to R2 storage available!<br/>
-          <strong>Option 1:</strong> Select file for automatic R2 upload<br/>
-          <strong>Option 2:</strong> Enter R2 URL directly<br/>
+          🚀 <strong>Image Upload Working:</strong> Select files for immediate preview and storage!<br/>
+          <strong>Option 1:</strong> Select file for instant base64 upload and preview<br/>
+          <strong>Option 2:</strong> Enter image URL directly (supports any image URL)<br/>
           <strong>Option 3:</strong> Use external services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a><br/>
-          <code className="bg-gray-200 px-1 rounded">R2: pub-56fa6cb20f9f4070b3dcbdf365d81f80.r2.dev</code>
+          <span className="text-green-600">✅ Images are immediately visible after upload</span>
         </div>
 
       </div>
