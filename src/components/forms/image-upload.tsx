@@ -53,20 +53,30 @@ export function ImageUpload({
       const localUrl = URL.createObjectURL(file);
       setPreviewUrl(localUrl);
       
-      // For now, we'll use a placeholder URL since upload API is not available
-      // In production, you would implement proper file upload
-      const placeholderUrl = `https://via.placeholder.com/400x300/cccccc/666666?text=${encodeURIComponent(file.name)}`;
+      // Generate a suggested R2 URL based on the existing pattern
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const suggestedR2Url = `https://pub-6481c927139b4654ace8022882acbd62.r2.dev/nrgug/${uploadType}/${file.name.replace(/\.[^/.]+$/, '')}-${timestamp}.${fileExtension}`;
       
       console.log('📁 File selected:', file.name, 'Size:', file.size, 'bytes');
-      console.log('⚠️ Upload API not available - using placeholder URL');
+      console.log('💡 Suggested R2 URL:', suggestedR2Url);
       
-      // Use placeholder URL for now
-      onChange(placeholderUrl);
-      setUrlValue(placeholderUrl);
-      setPreviewUrl(placeholderUrl);
+      // Show the suggested URL to the user
+      const userConfirmed = confirm(
+        `File selected: ${file.name}\n\n` +
+        `Suggested R2 URL:\n${suggestedR2Url}\n\n` +
+        `Would you like to use this URL? You'll need to upload the file to R2 storage manually.`
+      );
       
-      // Show a message to the user
-      alert('Upload API is not available. Please use the URL input to provide an image URL instead.');
+      if (userConfirmed) {
+        onChange(suggestedR2Url);
+        setUrlValue(suggestedR2Url);
+        setPreviewUrl(suggestedR2Url);
+      } else {
+        // Let user enter their own URL
+        setUrlValue('');
+        setPreviewUrl(localUrl);
+      }
       
     } catch (error) {
       console.error('File processing failed:', error);
@@ -171,8 +181,10 @@ export function ImageUpload({
 
         {/* Info Message */}
         <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-          💡 <strong>Note:</strong> File upload is not available. Please use an image URL instead. 
-          You can upload images to services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a> and paste the URL here.
+          💡 <strong>R2 Storage Available:</strong> Your backend uses R2 storage at <code className="bg-gray-200 px-1 rounded">pub-6481c927139b4654ace8022882acbd62.r2.dev</code><br/>
+          <strong>Option 1:</strong> Upload to R2 manually and use the URL<br/>
+          <strong>Option 2:</strong> Use external services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a><br/>
+          <strong>Option 3:</strong> Select a file to get a suggested R2 URL
         </div>
 
       </div>

@@ -144,14 +144,14 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', type);
-    return api.post('/upload/r2', formData, {
+    return api.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   },
   deleteFromR2: (key: string): Promise<{ data: { result: string; key: string } }> => {
-    return api.delete(`/upload/r2/delete?key=${key}`);
+    return api.delete(`/upload/delete?key=${key}`);
   },
 };
 
