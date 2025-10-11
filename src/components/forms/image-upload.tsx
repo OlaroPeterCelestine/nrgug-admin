@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { uploadApi } from '@/lib/api';
+import { uploadToR2, generateR2Url } from '@/lib/r2-upload';
 
 interface ImageUploadProps {
   value?: string;
@@ -53,29 +54,40 @@ export function ImageUpload({
       const localUrl = URL.createObjectURL(file);
       setPreviewUrl(localUrl);
       
-      // Generate a suggested R2 URL based on the existing pattern
-      const timestamp = Date.now();
-      const fileExtension = file.name.split('.').pop() || 'jpg';
-      const suggestedR2Url = `https://pub-6481c927139b4654ace8022882acbd62.r2.dev/nrgug/${uploadType}/${file.name.replace(/\.[^/.]+$/, '')}-${timestamp}.${fileExtension}`;
-      
       console.log('📁 File selected:', file.name, 'Size:', file.size, 'bytes');
-      console.log('💡 Suggested R2 URL:', suggestedR2Url);
       
-      // Show the suggested URL to the user
-      const userConfirmed = confirm(
-        `File selected: ${file.name}\n\n` +
-        `Suggested R2 URL:\n${suggestedR2Url}\n\n` +
-        `Would you like to use this URL? You'll need to upload the file to R2 storage manually.`
-      );
-      
-      if (userConfirmed) {
-        onChange(suggestedR2Url);
-        setUrlValue(suggestedR2Url);
-        setPreviewUrl(suggestedR2Url);
-      } else {
-        // Let user enter their own URL
-        setUrlValue('');
-        setPreviewUrl(localUrl);
+      // Try to upload to R2 via backend first
+      try {
+        const result = await uploadToR2(file, uploadType);
+        console.log('✅ R2 Upload successful:', result);
+        
+        onChange(result.url);
+        setUrlValue(result.url);
+        setPreviewUrl(result.url);
+        
+        alert(`✅ File uploaded successfully!\n\nR2 URL: ${result.url}`);
+        
+      } catch (uploadError) {
+        console.log('⚠️ Backend upload failed, generating R2 URL:', uploadError);
+        
+        // Fallback: Generate R2 URL for manual upload
+        const r2Url = generateR2Url(file.name, uploadType);
+        
+        const userConfirmed = confirm(
+          `File selected: ${file.name}\n\n` +
+          `Backend upload not available. Generated R2 URL:\n${r2Url}\n\n` +
+          `Would you like to use this URL? You'll need to upload the file to R2 storage manually.`
+        );
+        
+        if (userConfirmed) {
+          onChange(r2Url);
+          setUrlValue(r2Url);
+          setPreviewUrl(r2Url);
+        } else {
+          // Let user enter their own URL
+          setUrlValue('');
+          setPreviewUrl(localUrl);
+        }
       }
       
     } catch (error) {
@@ -175,16 +187,17 @@ export function ImageUpload({
             className="flex-1"
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isUploading ? 'Processing...' : 'Select File (URL Required)'}
+            {isUploading ? 'Uploading to R2...' : 'Upload to R2 Storage'}
           </Button>
         </div>
 
         {/* Info Message */}
-        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-          💡 <strong>R2 Storage Available:</strong> Your backend uses R2 storage at <code className="bg-gray-200 px-1 rounded">pub-6481c927139b4654ace8022882acbd62.r2.dev</code><br/>
-          <strong>Option 1:</strong> Upload to R2 manually and use the URL<br/>
-          <strong>Option 2:</strong> Use external services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a><br/>
-          <strong>Option 3:</strong> Select a file to get a suggested R2 URL
+        <div className="text-xs text-gray-500 bg-green-50 p-2 rounded">
+          🚀 <strong>R2 Storage Integrated:</strong> Direct upload to R2 storage available!<br/>
+          <strong>Option 1:</strong> Select file for automatic R2 upload<br/>
+          <strong>Option 2:</strong> Enter R2 URL directly<br/>
+          <strong>Option 3:</strong> Use external services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a><br/>
+          <code className="bg-gray-200 px-1 rounded">R2: pub-6481c927139b4654ace8022882acbd62.r2.dev</code>
         </div>
 
       </div>
