@@ -94,7 +94,30 @@ export default function ShowsPage() {
   const filteredShows = shows?.filter(item =>
     item.show_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.presenters.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  ).sort((a, b) => {
+    // Get current day and create day order starting from today
+    const today = new Date().getDay()
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    
+    // Create day order starting from current day
+    const dayOrder = []
+    for (let i = 0; i < 7; i++) {
+      const dayIndex = (today + i) % 7
+      dayOrder.push(dayNames[dayIndex])
+    }
+    
+    const aDayIndex = dayOrder.indexOf(a.day_of_week)
+    const bDayIndex = dayOrder.indexOf(b.day_of_week)
+    
+    if (aDayIndex !== bDayIndex) {
+      return aDayIndex - bDayIndex
+    }
+    
+    // Then sort by start time within the same day
+    const aStartTime = a.time.split(' - ')[0]
+    const bStartTime = b.time.split(' - ')[0]
+    return aStartTime.localeCompare(bStartTime)
+  }) || [];
 
   // Time is now provided directly from API
 
@@ -278,7 +301,12 @@ export default function ShowsPage() {
                     <TableCell>
                       <div className="flex items-center text-sm">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {item.day_of_week}
+                        <span className={item.day_of_week === new Date().toLocaleDateString('en-US', { weekday: 'long' }) ? 'font-bold text-blue-600' : ''}>
+                          {item.day_of_week}
+                        </span>
+                        {item.day_of_week === new Date().toLocaleDateString('en-US', { weekday: 'long' }) && (
+                          <Badge variant="secondary" className="ml-2 text-xs">Today</Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
