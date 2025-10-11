@@ -21,7 +21,7 @@ const R2_CONFIG: R2Config = {
   secretAccessKey: 'd9b5239acab4694fe732d03d4bebd9b7e23e37da982a04601669f19a56d1d5fd',
   bucketName: 'nrgug-storage', // This might need to be adjusted based on your actual bucket name
   region: 'auto',
-  publicUrl: 'https://pub-6481c927139b4654ace8022882acbd62.r2.dev'
+  publicUrl: 'https://pub-56fa6cb20f9f4070b3dcbdf365d81f80.r2.dev'
 };
 
 // Generate AWS4 signature for R2

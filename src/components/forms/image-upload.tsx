@@ -197,7 +197,7 @@ export function ImageUpload({
           <strong>Option 1:</strong> Select file for automatic R2 upload<br/>
           <strong>Option 2:</strong> Enter R2 URL directly<br/>
           <strong>Option 3:</strong> Use external services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a><br/>
-          <code className="bg-gray-200 px-1 rounded">R2: pub-6481c927139b4654ace8022882acbd62.r2.dev</code>
+          <code className="bg-gray-200 px-1 rounded">R2: pub-56fa6cb20f9f4070b3dcbdf365d81f80.r2.dev</code>
         </div>
 
       </div>
