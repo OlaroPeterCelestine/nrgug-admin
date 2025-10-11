@@ -95,15 +95,24 @@ export default function ShowsPage() {
     item.show_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.presenters.toLowerCase().includes(searchTerm.toLowerCase())
   ).sort((a, b) => {
-    // Get current day and create day order starting from today
+    // Get current day and create day order starting from today, ending with Sunday
     const today = new Date().getDay()
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     
-    // Create day order starting from current day
+    // Create day order starting from current day, wrapping to include all days up to Sunday
     const dayOrder = []
     for (let i = 0; i < 7; i++) {
       const dayIndex = (today + i) % 7
       dayOrder.push(dayNames[dayIndex])
+    }
+    
+    // Ensure Sunday is always at the end if it's not the current day
+    if (today !== 0) { // If today is not Sunday
+      const sundayIndex = dayOrder.indexOf('Sunday')
+      if (sundayIndex !== -1) {
+        dayOrder.splice(sundayIndex, 1)
+        dayOrder.push('Sunday')
+      }
     }
     
     const aDayIndex = dayOrder.indexOf(a.day_of_week)
@@ -301,11 +310,11 @@ export default function ShowsPage() {
                     <TableCell>
                       <div className="flex items-center text-sm">
                         <Calendar className="h-4 w-4 mr-1" />
-                        <span className={item.day_of_week === new Date().toLocaleDateString('en-US', { weekday: 'long' }) ? 'font-bold text-blue-600' : ''}>
+                        <span className={item.day_of_week === new Date().toLocaleDateString('en-US', { weekday: 'long' }) ? 'font-bold text-red-600' : ''}>
                           {item.day_of_week}
                         </span>
                         {item.day_of_week === new Date().toLocaleDateString('en-US', { weekday: 'long' }) && (
-                          <Badge variant="secondary" className="ml-2 text-xs">Today</Badge>
+                          <Badge variant="secondary" className="ml-2 text-xs bg-red-100 text-red-800">Today</Badge>
                         )}
                       </div>
                     </TableCell>
