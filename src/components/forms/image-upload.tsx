@@ -28,7 +28,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(value);
-  const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlValue, setUrlValue] = useState(value);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +41,7 @@ export function ImageUpload({
       return;
     }
 
-    // Validate file size (10MB limit for R2)
+    // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
       alert('File size must be less than 10MB');
       return;
@@ -50,17 +49,28 @@ export function ImageUpload({
 
     setIsUploading(true);
     try {
-      // Upload to R2 storage
-      const response = await uploadApi.uploadToR2(file, uploadType);
-      console.log('✅ Uploaded to R2:', response.data);
+      // Create a local URL for preview
+      const localUrl = URL.createObjectURL(file);
+      setPreviewUrl(localUrl);
       
-      const imageUrl = response.data.url;
-      onChange(imageUrl);
-      setPreviewUrl(imageUrl);
-      setUrlValue(imageUrl);
+      // For now, we'll use a placeholder URL since upload API is not available
+      // In production, you would implement proper file upload
+      const placeholderUrl = `https://via.placeholder.com/400x300/cccccc/666666?text=${encodeURIComponent(file.name)}`;
+      
+      console.log('📁 File selected:', file.name, 'Size:', file.size, 'bytes');
+      console.log('⚠️ Upload API not available - using placeholder URL');
+      
+      // Use placeholder URL for now
+      onChange(placeholderUrl);
+      setUrlValue(placeholderUrl);
+      setPreviewUrl(placeholderUrl);
+      
+      // Show a message to the user
+      alert('Upload API is not available. Please use the URL input to provide an image URL instead.');
+      
     } catch (error) {
-      console.error('R2 upload failed:', error);
-      alert('Upload failed. Please check your connection and try again.');
+      console.error('File processing failed:', error);
+      alert('File processing failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -116,7 +126,27 @@ export function ImageUpload({
 
       {/* Upload Options */}
       <div className="flex flex-col space-y-2">
-        {/* File Upload */}
+        {/* URL Input - Primary Method */}
+        <div className="flex space-x-2">
+          <Input
+            type="url"
+            placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+            value={urlValue}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleUrlSubmit}
+            disabled={!urlValue.trim()}
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Use URL
+          </Button>
+        </div>
+
+        {/* File Upload - Secondary Method */}
         <div className="flex items-center space-x-2">
           <Input
             ref={fileInputRef}
@@ -135,44 +165,16 @@ export function ImageUpload({
             className="flex-1"
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isUploading ? 'Uploading...' : 'Upload Image'}
+            {isUploading ? 'Processing...' : 'Select File (URL Required)'}
           </Button>
         </div>
 
-        {/* URL Input Toggle */}
-        <div className="flex items-center space-x-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowUrlInput(!showUrlInput)}
-            className="flex-1"
-          >
-            <ImageIcon className="h-4 w-4 mr-2" />
-            {showUrlInput ? 'Hide URL Input' : 'Enter URL Instead'}
-          </Button>
+        {/* Info Message */}
+        <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
+          💡 <strong>Note:</strong> File upload is not available. Please use an image URL instead. 
+          You can upload images to services like <a href="https://imgur.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Imgur</a> or <a href="https://cloudinary.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Cloudinary</a> and paste the URL here.
         </div>
 
-        {/* URL Input */}
-        {showUrlInput && (
-          <div className="flex space-x-2">
-            <Input
-              type="url"
-              value={urlValue}
-              onChange={(e) => setUrlValue(e.target.value)}
-              placeholder={placeholder}
-              required={required}
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              onClick={handleUrlSubmit}
-              disabled={!urlValue.trim()}
-            >
-              Use URL
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* Current Value Display */}
