@@ -14,7 +14,10 @@ import {
   PaginatedResponse
 } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nrgug-api-production.up.railway.app';
+import { CLIENT_API_CONFIG } from './client-api';
+
+// Use proxy to hide the actual API URL
+const API_BASE_URL = CLIENT_API_CONFIG.BASE_URL;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

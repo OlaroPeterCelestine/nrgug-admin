@@ -20,7 +20,7 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://nrgug-api-production.up.railway.app"
+    "BACKEND_URL": "https://nrgug-api-production.up.railway.app"
   }
 }
 
