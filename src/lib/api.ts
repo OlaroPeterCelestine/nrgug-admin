@@ -190,8 +190,8 @@ export const videosApi = {
 // Auth API
 export const authApi = {
   login: (email: string, password: string): Promise<{ data: User }> => 
-    api.post('/api/users/login', { email, password }),
-  logout: (): Promise<ApiResponse<void>> => api.post('/api/users/logout'),
+    api.post('/users/login', { email, password }),
+  logout: (): Promise<ApiResponse<void>> => api.post('/users/logout'),
 };
 
 export default api;
