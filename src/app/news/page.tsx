@@ -57,9 +57,10 @@ export default function NewsPage() {
   const fetchNews = async () => {
     try {
       const response = await newsApi.getAll();
-      setNews(response.data);
+      setNews(response.data || []);
     } catch (error) {
       console.error('Failed to fetch news:', error);
+      setNews([]); // Ensure news is always an array
     } finally {
       setLoading(false);
     }
@@ -167,7 +168,7 @@ export default function NewsPage() {
   };
 
   const getSelectedArticle = (id: number | null) => {
-    return news.find(article => article.id === id);
+    return news?.find(article => article.id === id);
   };
 
   const formatDate = (dateString: string) => {
@@ -329,7 +330,7 @@ export default function NewsPage() {
         {/* News Table - Hidden on mobile */}
         <Card className="hidden sm:block">
           <CardHeader>
-            <CardTitle>News Articles ({filteredNews.length})</CardTitle>
+            <CardTitle>News Articles ({filteredNews?.length || 0})</CardTitle>
             <CardDescription>Manage all news articles and content</CardDescription>
           </CardHeader>
           <CardContent>
@@ -344,7 +345,7 @@ export default function NewsPage() {
                   </TableRow>
                 </TableHeader>
               <TableBody>
-                {filteredNews.map((item) => (
+                {filteredNews?.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-3">
@@ -423,7 +424,7 @@ export default function NewsPage() {
         {/* Mobile Card Layout - Hidden on larger screens */}
         <div className="block sm:hidden">
           <div className="space-y-4">
-            {filteredNews.map((item) => (
+            {filteredNews?.map((item) => (
               <Card key={item.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start space-x-3">
@@ -530,7 +531,7 @@ export default function NewsPage() {
                       <SelectValue placeholder="Select main story" />
                     </SelectTrigger>
                     <SelectContent>
-                      {news.map((article) => (
+                      {news && news.map((article) => (
                         <SelectItem key={article.id} value={article.id.toString()}>
                           {article.title}
                         </SelectItem>
@@ -572,7 +573,7 @@ export default function NewsPage() {
                       <SelectValue placeholder="Select minor story 1" />
                     </SelectTrigger>
                     <SelectContent>
-                      {news.map((article) => (
+                      {news && news.map((article) => (
                         <SelectItem key={article.id} value={article.id.toString()}>
                           {article.title}
                         </SelectItem>
@@ -614,7 +615,7 @@ export default function NewsPage() {
                       <SelectValue placeholder="Select minor story 2" />
                     </SelectTrigger>
                     <SelectContent>
-                      {news.map((article) => (
+                      {news && news.map((article) => (
                         <SelectItem key={article.id} value={article.id.toString()}>
                           {article.title}
                         </SelectItem>

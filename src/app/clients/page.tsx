@@ -35,9 +35,10 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     try {
       const response = await clientsApi.getAll();
-      setClients(response.data);
+      setClients(response.data || []);
     } catch (error) {
       console.error('Failed to fetch clients:', error);
+      setClients([]); // Ensure clients is always an array
     } finally {
       setLoading(false);
     }
@@ -194,7 +195,7 @@ export default function ClientsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClients.map((client) => (
+                {filteredClients?.map((client) => (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-3">

@@ -66,10 +66,13 @@ export default function ContactMessagesPage() {
       const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        setMessages(data)
+        setMessages(data || [])
+      } else {
+        setMessages([])
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
+      setMessages([])
     } finally {
       setLoading(false)
     }
@@ -208,14 +211,14 @@ export default function ContactMessagesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Messages List */}
         <div className="space-y-4">
-          {messages.length === 0 ? (
+          {messages && messages.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-gray-500">No contact messages found</p>
               </CardContent>
             </Card>
           ) : (
-            messages.map((message) => (
+            messages && messages.map((message) => (
               <Card 
                 key={message.id} 
                 className={`cursor-pointer transition-colors ${

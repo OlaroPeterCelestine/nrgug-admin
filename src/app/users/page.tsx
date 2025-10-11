@@ -37,9 +37,10 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       const response = await usersApi.getAll();
-      setUsers(response.data);
+      setUsers(response.data || []);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      setUsers([]); // Ensure users is always an array
     } finally {
       setLoading(false);
     }
@@ -258,7 +259,7 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {filteredUsers?.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center space-x-3">

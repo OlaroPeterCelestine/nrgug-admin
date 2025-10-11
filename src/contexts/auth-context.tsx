@@ -143,12 +143,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      // Use the real API for authentication
       const response = await authApi.login(email, password);
       
-      // The API returns the user object directly, not wrapped in data.data
+      // The API returns the user object directly
       const userData = response.data;
       
-      // For now, create a simple token since the API doesn't return JWT
+      // Create a simple token since the API doesn't return JWT
       const simpleToken = typeof window !== 'undefined' ? btoa(JSON.stringify({ email: userData.email, id: userData.id })) : 'temp-token';
       
       if (typeof window !== 'undefined') {

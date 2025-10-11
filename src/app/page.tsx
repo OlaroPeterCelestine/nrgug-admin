@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Layout } from '@/components/layout';
+import { LoginForm } from '@/components/login-form';
+import { SessionWarning } from '@/components/session-warning';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -19,7 +21,9 @@ import { fastApi } from '@/lib/api';
 import { MailStats } from '@/types';
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, login } = useAuth();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [stats, setStats] = useState({
     newsCount: 0,
     showsCount: 0,
@@ -32,7 +36,24 @@ export default function DashboardPage() {
   const [mailStats, setMailStats] = useState<MailStats | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
+  const handleLogin = async (email: string, password: string) => {
+    setIsLoggingIn(true);
+    setLoginError(null);
+    try {
+      await login(email, password);
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : 'Login failed');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   useEffect(() => {
+    // Only fetch stats if user is authenticated
+    if (!user) {
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         // Helper function to safely get data
@@ -97,20 +118,45 @@ export default function DashboardPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [user]);
 
-  // Show loading while auth context initializes or stats are loading
-  if (loading || stats.loading) {
+  // Show loading while auth context initializes
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-          {dataLoaded && (
-            <p className="text-sm text-gray-500 mt-2">Loading additional data...</p>
-          )}
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  // Show login form if not authenticated
+  if (!user) {
+    return (
+      <LoginForm 
+        onLogin={handleLogin} 
+        loading={isLoggingIn} 
+        error={loginError} 
+      />
+    );
+  }
+
+  // Show loading while stats are loading
+  if (stats.loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+            {dataLoaded && (
+              <p className="text-sm text-gray-500 mt-2">Loading additional data...</p>
+            )}
+          </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -152,6 +198,7 @@ export default function DashboardPage() {
 
   return (
     <Layout>
+      <SessionWarning />
       <div className="space-y-6">
         {/* Header */}
         <div>
